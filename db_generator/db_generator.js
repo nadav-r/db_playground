@@ -13,40 +13,63 @@ const knex = require('knex')({
 })
 
 
-// const { MongoClient, ObjectID } = require('mongodb')
-// const connectionURL = 'mongodb://127.0.0.1:27017'
-// const databaseName = '../db.sqlite'
+const { MongoClient, ObjectID } = require('mongodb')
+const connectionURL = 'mongodb://127.0.0.1:27017'
+const databaseName = 'db_playground'
+//inserting dummy data to mongodb and sqlite
+MongoClient.connect(connectionURL, { useNewUrlParser: true, useUnifiedTopology: true }, (error, client) => {
+    if (error) {
+        return console.log('Unable to connect to database')
+    }
 
-// MongoClient.connect(connectionURL, { useNewUrlParser: true, useUnifiedTopology: true }, (error, client) => {
-//     if (error) {
-//         return console.log('Unable to connect to database')
-//     }
-
-//     const db = client.db(databaseName)
-
-// })
-
-const results = []
-fs.createReadStream('names-state.csv')
-    .pipe(csv())
-    .on('data', (data) => results.push(data))
-    .on('end', () => {
-        const min = 0
-        const max = results.length
-        const names = results.map(record => { return record.name })
-        const state = results.map(record => { return record.state })
-        for (let i = 0; i < 50; i++) {
-            const { firstName, secondName } = generateName(names, names)
-            const user = {
-                id: uuidv1(),
-                first_name: firstName,
-                last_name: secondName,
-                birthday: generateBirthDay(),
-                last_login: generateBirthDay()
+    const db = client.db(databaseName)
+    const results = []
+    fs.createReadStream('names-state.csv')
+        .pipe(csv())
+        .on('data', (data) => results.push(data))
+        .on('end', () => {
+            const min = 0
+            const max = results.length
+            const names = results.map(record => { return record.name })
+            const state = results.map(record => { return record.state })
+            for (let i = 0; i < 50; i++) {
+                const { firstName, secondName } = generateName(names, names)
+                const user = {
+                    id: uuidv1(),
+                    first_name: firstName,
+                    last_name: secondName,
+                    birthday: generateBirthDay(),
+                    last_login: generateBirthDay()
+                }
+                knex('users').insert(user).then(res => {
+                    db.collection('users').insertOne(user)
+                }).catch(err => console.log(err))
+                
             }
-            knex('users').insert(user).catch(err => console.log(err))
+        })
+})
 
-        }
-    })
+// const results = []
+// fs.createReadStream('names-state.csv')
+//     .pipe(csv())
+//     .on('data', (data) => results.push(data))
+//     .on('end', () => {
+//         const min = 0
+//         const max = results.length
+//         const names = results.map(record => { return record.name })
+//         const state = results.map(record => { return record.state })
+//         for (let i = 0; i < 50; i++) {
+//             const { firstName, secondName } = generateName(names, names)
+//             const user = {
+//                 id: uuidv1(),
+//                 first_name: firstName,
+//                 last_name: secondName,
+//                 birthday: generateBirthDay(),
+//                 last_login: generateBirthDay()
+//             }
+//             knex('users').insert(user).catch(err => console.log(err))
+
+//         }
+//     })
 
 
