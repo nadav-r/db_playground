@@ -19,7 +19,7 @@ app.get('/yearsBirths', (req, res) => {
             return console.log('Unable to connect to database')
         }
         const db = client.db(databaseName)
-       const agg = db.collection('users')
+        db.collection('users')
             .aggregate([
                 {
                     $group: {
@@ -27,7 +27,9 @@ app.get('/yearsBirths', (req, res) => {
                         count: { $sum: 1 }
                     }
                 }
-            ]).toArray().then(res => console.log(res))
+            ]).toArray().then(agg => {
+                res.json(agg)
+            })
     })
 })
 
